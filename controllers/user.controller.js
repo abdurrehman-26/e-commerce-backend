@@ -119,7 +119,7 @@ export const checkLogin = async (req, res) => {
 
 export const getloggedinuser = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select("name email -_id").lean()
+    const user = await User.findById(req.user._id).select("name email -_id isAdmin").lean()
     user.userID = req.user._id
     res
       .status(200)
