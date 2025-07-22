@@ -19,7 +19,7 @@ export const resgisterUser = async (req, res) => {
     );
     res
       .status(201)
-      .json({ data: createdUser, message: "User Created successfully" });
+      .json({ status: "success", data: createdUser, message: "User Created successfully" });
   } catch (error) {
     res.status(500).json({status: "failed", message: "something went wrong on server"})
   }

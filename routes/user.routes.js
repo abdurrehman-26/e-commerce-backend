@@ -4,7 +4,7 @@ import { adminOnly, blockunAuth, verifyJWT } from "../middlewares/auth.middlewar
 
 const router = express.Router()
 
-router.route("/register").post(resgisterUser)
+router.route("/signup").post(resgisterUser)
 router.route("/login").post(loginUser)
 router.route("/logout").get(verifyJWT, blockunAuth, logoutUser)
 router.route("/checklogin").get(checkLogin)
