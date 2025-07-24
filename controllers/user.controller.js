@@ -106,12 +106,14 @@ export const checkLogin = async (req, res) => {
       req.cookies?.accesstoken ||
       req.header("Authorization")?.replace("Bearer ", "");
     if (!token) {
-      return res.status(401).json({ message: "access token not found" });
+      return res
+        .status(401)
+        .json({ login: false, message: "User is not logged in" });
     }
     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     const user = await User.findById(decodedToken._id);
     if (!user) {
-      return res.status(404).json({ message: "user not found" });
+      return res.status(404).json({ login: false, message: "user not found" });
     }
     res.status(200).json({ login: true, message: "User is logged in" });
   } catch (error) {
@@ -293,7 +295,9 @@ export const deleteAddress = async (req, res) => {
     const { addressID } = req.params;
 
     if (!user) {
-      return res.status(404).json({ status: "failed", message: "User not found" });
+      return res
+        .status(404)
+        .json({ status: "failed", message: "User not found" });
     }
 
     const index = user.addresses.findIndex(
@@ -301,13 +305,16 @@ export const deleteAddress = async (req, res) => {
     );
 
     if (index === -1) {
-      return res.status(404).json({ status: "failed", message: "Address not found" });
+      return res
+        .status(404)
+        .json({ status: "failed", message: "Address not found" });
     }
 
     if (user.addresses[index].isDefault) {
       return res.status(400).json({
         status: "failed",
-        message: "You can't delete the default address. Please set another one as default first.",
+        message:
+          "You can't delete the default address. Please set another one as default first.",
       });
     }
 
@@ -321,7 +328,9 @@ export const deleteAddress = async (req, res) => {
     });
   } catch (error) {
     console.error("Error deleting address:", error);
-    return res.status(500).json({ status: "failed", message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ status: "failed", message: "Internal server error" });
   }
 };
 export const getAllAddresses = async (req, res) => {
