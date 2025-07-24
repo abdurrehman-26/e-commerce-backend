@@ -7,7 +7,9 @@ export const resgisterUser = async (req, res) => {
     const existingUser = await User.find({ email });
     if (existingUser && existingUser.length !== 0) {
       console.log(existingUser);
-      return res.status(200).json({ message: "User with email already exists" });
+      return res
+        .status(200)
+        .json({ message: "User with email already exists" });
     }
     const createUser = await User.create({
       name,
@@ -17,11 +19,15 @@ export const resgisterUser = async (req, res) => {
     const createdUser = await User.findById(createUser).select(
       "-password -createdAt -updatedAt -__v"
     );
-    res
-      .status(201)
-      .json({ status: "success", data: createdUser, message: "User Created successfully" });
+    res.status(201).json({
+      status: "success",
+      data: createdUser,
+      message: "User Created successfully",
+    });
   } catch (error) {
-    res.status(500).json({status: "failed", message: "something went wrong on server"})
+    res
+      .status(500)
+      .json({ status: "failed", message: "something went wrong on server" });
   }
 };
 export const loginUser = async (req, res) => {
@@ -44,17 +50,17 @@ export const loginUser = async (req, res) => {
       .status(200)
       .cookie("accesstoken", accesstoken, {
         maxAge: 1000 * 60 * 60 * 24 * 7,
-        httpOnly: true,                  // Can't be accessed via JavaScript
-        secure: true,                    // Only over HTTPS
+        httpOnly: true, // Can't be accessed via JavaScript
+        secure: true, // Only over HTTPS
         domain: ".clixmart.dns-dynamic.net",
-        sameSite: "none",  
+        sameSite: "none",
       })
       .cookie("refreshtoken", refreshtoken, {
         maxAge: 1000 * 60 * 60 * 24 * 7,
-        httpOnly: true,                  // Can't be accessed via JavaScript
-        secure: true,                    // Only over HTTPS
+        httpOnly: true, // Can't be accessed via JavaScript
+        secure: true, // Only over HTTPS
         domain: ".clixmart.dns-dynamic.net",
-        sameSite: "none",        
+        sameSite: "none",
       })
       .json({
         loggedinuser,
@@ -63,8 +69,10 @@ export const loginUser = async (req, res) => {
         message: "User loggedin successfully",
       });
   } catch (error) {
-    console.log(error)
-    res.status(500).json({status: "failed", message: "something went wrong on server"})
+    console.log(error);
+    res
+      .status(500)
+      .json({ status: "failed", message: "something went wrong on server" });
   }
 };
 
@@ -86,10 +94,11 @@ export const logoutUser = (req, res) => {
       .status(200)
       .json({ status: "success", message: "User logged out successfully" });
   } catch (error) {
-    res.status(500).json({ status: "failed", message: "Server error during logout" });
+    res
+      .status(500)
+      .json({ status: "failed", message: "Server error during logout" });
   }
 };
-
 
 export const checkLogin = async (req, res) => {
   try {
@@ -119,19 +128,27 @@ export const checkLogin = async (req, res) => {
 
 export const getloggedinuser = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select("name email -_id isAdmin").lean()
-    user.userID = req.user._id
-    res
-      .status(200)
-      .json({ status: "success", user, message: "logged in user fetched successfully" });
+    const user = await User.findById(req.user._id)
+      .select("name email -_id isAdmin")
+      .lean();
+    user.userID = req.user._id;
+    res.status(200).json({
+      status: "success",
+      user,
+      message: "logged in user fetched successfully",
+    });
   } catch (error) {
-    res.status(500).json({status: "failed", message: "something went wrong on server"})
+    res
+      .status(500)
+      .json({ status: "failed", message: "something went wrong on server" });
   }
 };
 
 export const getUsersList = async (req, res) => {
   try {
-    const users = await User.find().select("-password -updatedAt -id -__v -isAdmin");
+    const users = await User.find().select(
+      "-password -updatedAt -id -__v -isAdmin"
+    );
     res.status(200).json({ status: "success", data: users });
   } catch (err) {
     res.status(500).json({ status: "failed", message: err.message });
@@ -139,7 +156,8 @@ export const getUsersList = async (req, res) => {
 };
 
 export const addAddress = async (req, res) => {
-  const { 
+  const {
+    addressName,
     fullName,
     phone,
     addressLine1,
@@ -148,37 +166,174 @@ export const addAddress = async (req, res) => {
     state,
     postalCode,
     country,
-    isDefault } = req.body;
+    isDefault,
+  } = req.body;
 
-    const user = await User.findOne({_id: req.user._id});
+  const user = await User.findOne({ _id: req.user._id });
 
-    const newAddress = {
-      fullName,
-      phone,
-      addressLine1,
-      addressLine2,
-      city,
-      state,
-      postalCode,
-      country,
-      isDefault: isDefault || false,
-    };
+  const newAddress = {
+    addressName,
+    fullName,
+    phone,
+    addressLine1,
+    addressLine2,
+    city,
+    state,
+    postalCode,
+    country,
+    isDefault: isDefault || false,
+  };
 
-    if (newAddress.isDefault) {
+  if (newAddress.isDefault) {
+    user.addresses = user.addresses.map((addr) => ({
+      ...addr.toObject(),
+      isDefault: false,
+    }));
+  }
+
+  user.addresses.push(newAddress);
+  await user.save();
+
+  const addedAddress = user.addresses[user.addresses.length - 1];
+
+  res.status(200).json({
+    status: "success",
+    message: "Address added successfully",
+    addedAddress,
+  });
+};
+export const updateAddress = async (req, res) => {
+  const { addressID } = req.params;
+  const {
+    addressName,
+    fullName,
+    phone,
+    addressLine1,
+    addressLine2,
+    city,
+    state,
+    postalCode,
+    country,
+    isDefault,
+  } = req.body;
+
+  try {
+    const user = await User.findOne({ _id: req.user._id });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ status: "error", message: "User not found" });
+    }
+
+    const index = user.addresses.findIndex(
+      (addr) => addr._id.toString() === addressID
+    );
+
+    if (index === -1) {
+      return res
+        .status(404)
+        .json({ status: "failed", message: "Address not found" });
+    }
+
+    const currentAddress = user.addresses[index];
+    const isCurrentlyDefault = currentAddress.isDefault;
+
+    // If isDefault is true, unset default for all others
+    if (isDefault) {
       user.addresses = user.addresses.map((addr) => ({
         ...addr.toObject(),
         isDefault: false,
       }));
     }
 
-    user.addresses.push(newAddress);
+    // If trying to unset the only default, block it
+    const isUnsettingOnlyDefault = !isDefault && isCurrentlyDefault;
+
+    if (isUnsettingOnlyDefault) {
+      return res.status(400).json({
+        status: "failed",
+        message: "You must have at least one default address",
+      });
+    }
+
+    // Update the address
+    const addr = user.addresses[index];
+
+    addr.addressName = addressName ?? addr.addressName;
+    addr.fullName = fullName ?? addr.fullName;
+    addr.phone = phone ?? addr.phone;
+    addr.addressLine1 = addressLine1 ?? addr.addressLine1;
+    addr.addressLine2 = addressLine2 ?? addr.addressLine2;
+    addr.city = city ?? addr.city;
+    addr.state = state ?? addr.state;
+    addr.postalCode = postalCode ?? addr.postalCode;
+    addr.country = country ?? addr.country;
+    addr.isDefault = isDefault ?? addr.isDefault;
+
     await user.save();
 
-    res.status(200).json({ status: "success", message: "Address added successfully", addresses: user.addresses });
-}
+    const updatedAddress = user.addresses[index];
+
+    res.status(200).json({
+      status: "success",
+      message: "Address updated successfully",
+      updatedAddress,
+    });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ status: "failed", message: "Internal server error" });
+  }
+};
+export const deleteAddress = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    const { addressID } = req.params;
+
+    if (!user) {
+      return res.status(404).json({ status: "failed", message: "User not found" });
+    }
+
+    const index = user.addresses.findIndex(
+      (addr) => addr._id.toString() === addressID
+    );
+
+    if (index === -1) {
+      return res.status(404).json({ status: "failed", message: "Address not found" });
+    }
+
+    if (user.addresses[index].isDefault) {
+      return res.status(400).json({
+        status: "failed",
+        message: "You can't delete the default address. Please set another one as default first.",
+      });
+    }
+
+    user.addresses.splice(index, 1); // <-- the safe and correct way
+    await user.save();
+
+    return res.status(200).json({
+      status: "success",
+      message: "Address deleted successfully.",
+      addresses: user.addresses,
+    });
+  } catch (error) {
+    console.error("Error deleting address:", error);
+    return res.status(500).json({ status: "failed", message: "Internal server error" });
+  }
+};
 export const getAllAddresses = async (req, res) => {
+  const user = await User.findOne({ _id: req.user._id });
 
-    const user = await User.findOne({_id: req.user._id});
+  const sortedAddresses = [...user.addresses].sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
 
-    res.status(200).json({ status: "success", message: "Addresses fetched successfully", addresses: user.addresses });
-}
+  res.status(200).json({
+    status: "success",
+    message: "Addresses fetched successfully",
+    addresses: sortedAddresses,
+  });
+};
