@@ -30,6 +30,7 @@ export const resgisterUser = async (req, res) => {
       .json({ status: "failed", message: "something went wrong on server" });
   }
 };
+
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -75,6 +76,21 @@ export const loginUser = async (req, res) => {
       .json({ status: "failed", message: "something went wrong on server" });
   }
 };
+
+export const updateName = async(req, res) => {
+  const {name} = req.body
+  try {
+    if (!name) {
+      return res.status(400).json({status: "failed", message: "Name not provided"})
+    }
+    const updated_user = await User.findByIdAndUpdate(req.user._id, {
+      name
+    }, {new: true}).select("-password -createdAt -updatedAt -__v -addresses -isEmailVerified")
+    res.status(200).json({status: "success", message: "Name changed successfully.", updated_user})
+  } catch (error) {
+    res.status(500).json({status: "failed", message: "Internal server error"})
+  }
+}
 
 export const logoutUser = (req, res) => {
   try {
@@ -204,6 +220,7 @@ export const addAddress = async (req, res) => {
     addedAddress,
   });
 };
+
 export const updateAddress = async (req, res) => {
   const { addressID } = req.params;
   const {
@@ -289,6 +306,7 @@ export const updateAddress = async (req, res) => {
       .json({ status: "failed", message: "Internal server error" });
   }
 };
+
 export const deleteAddress = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -333,6 +351,7 @@ export const deleteAddress = async (req, res) => {
       .json({ status: "failed", message: "Internal server error" });
   }
 };
+
 export const getAllAddresses = async (req, res) => {
   const user = await User.findOne({ _id: req.user._id });
 
