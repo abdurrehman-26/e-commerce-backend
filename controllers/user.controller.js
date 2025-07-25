@@ -91,6 +91,43 @@ export const updateName = async(req, res) => {
     res.status(500).json({status: "failed", message: "Internal server error"})
   }
 }
+export const updatePassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  try {
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        status: "failed",
+        message: !oldPassword
+          ? "Old password not provided"
+          : "New password not provided",
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ status: "failed", message: "User not found" });
+    }
+
+    const isMatch = await user.isPasswordCorrect(oldPassword);
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ status: "failed", message: "Old password is incorrect" });
+    }
+
+    user.password = newPassword;
+    await user.save(); // 🔐 This triggers the pre-save hashing middleware
+
+    res.status(200).json({
+      status: "success",
+      message: "Password updated successfully.",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ status: "failed", message: "Internal server error" });
+  }
+};
 
 export const logoutUser = (req, res) => {
   try {
