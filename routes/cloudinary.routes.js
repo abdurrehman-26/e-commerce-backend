@@ -3,6 +3,6 @@ import { generateCloudinarySignature } from "../controllers/cloudinary.controlle
 
 const router = express.Router();
 
-router.get('/signature', generateCloudinarySignature)
+router.post('/signature', generateCloudinarySignature)
 
 export default router
