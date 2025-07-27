@@ -221,7 +221,6 @@ export const addAddress = async (req, res) => {
     state,
     postalCode,
     country,
-    isDefault,
   } = req.body;
 
   const user = await User.findOne({ _id: req.user._id });
@@ -236,15 +235,8 @@ export const addAddress = async (req, res) => {
     state,
     postalCode,
     country,
-    isDefault: isDefault || false,
+    isDefault: user.addresses.length === 0
   };
-
-  if (newAddress.isDefault) {
-    user.addresses = user.addresses.map((addr) => ({
-      ...addr.toObject(),
-      isDefault: false,
-    }));
-  }
 
   user.addresses.push(newAddress);
   await user.save();
@@ -270,7 +262,6 @@ export const updateAddress = async (req, res) => {
     state,
     postalCode,
     country,
-    isDefault,
   } = req.body;
 
   try {
@@ -292,27 +283,6 @@ export const updateAddress = async (req, res) => {
         .json({ status: "failed", message: "Address not found" });
     }
 
-    const currentAddress = user.addresses[index];
-    const isCurrentlyDefault = currentAddress.isDefault;
-
-    // If isDefault is true, unset default for all others
-    if (isDefault) {
-      user.addresses = user.addresses.map((addr) => ({
-        ...addr.toObject(),
-        isDefault: false,
-      }));
-    }
-
-    // If trying to unset the only default, block it
-    const isUnsettingOnlyDefault = !isDefault && isCurrentlyDefault;
-
-    if (isUnsettingOnlyDefault) {
-      return res.status(400).json({
-        status: "failed",
-        message: "You must have at least one default address",
-      });
-    }
-
     // Update the address
     const addr = user.addresses[index];
 
@@ -325,7 +295,6 @@ export const updateAddress = async (req, res) => {
     addr.state = state ?? addr.state;
     addr.postalCode = postalCode ?? addr.postalCode;
     addr.country = country ?? addr.country;
-    addr.isDefault = isDefault ?? addr.isDefault;
 
     await user.save();
 

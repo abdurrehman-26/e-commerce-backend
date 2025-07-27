@@ -39,9 +39,9 @@ export const createCheckoutSession = async (req, res) => {
 
   const user = await User.findOne({_id: userId}).select("addresses")
 
-  const shippingAddress = user.addresses.find((addr) => addr.isDefault === true)
+  const shippingAddress = user.addresses.find((addr) => addr.isDefault === true) || null
 
-  const billingAddress = user.addresses.find((addr) => addr.isDefault === true)
+  const billingAddress = user.addresses.find((addr) => addr.isDefault === true) || null
 
   const subtotal = calculateSubtotal(items)
 
