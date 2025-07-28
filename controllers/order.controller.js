@@ -167,9 +167,9 @@ export const getOrderByNoAdmin = async (req, res) => {
   }
 };
 
-export const getAllOrders = async (req, res) => {
+export const getAllOrders = async (_, res) => {
   try {
-    const orders = await Order.find().select("-userId").lean()
+    const orders = await Order.find().lean()
     const orderData = await Promise.all(orders.map(async (order) => {
       const userDetails = await User.findOne(order.userId).select("-__v -_id -password -createdAt -updatedAt -isEmailVerified -addresses -isAdmin")
       return {
