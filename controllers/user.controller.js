@@ -184,7 +184,7 @@ export const checkLogin = async (req, res) => {
 export const getloggedinuser = async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
-      .select("name email -_id isAdmin")
+      .select("name email -_id isAdmin isSuperAdmin")
       .lean();
     user.userID = req.user._id;
     res.status(200).json({
@@ -202,7 +202,7 @@ export const getloggedinuser = async (req, res) => {
 export const getUsersList = async (req, res) => {
   try {
     const users = await User.find().select(
-      "-password -updatedAt -id -__v -isAdmin"
+      "-password -updatedAt -id -__v"
     );
     res.status(200).json({ status: "success", data: users });
   } catch (err) {
@@ -416,5 +416,53 @@ export const setDefaultAddress = async (req, res) => {
       status: "failed",
       message: "Internal server error",
     });
+  }
+};
+
+export const makeAdmin = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ status: 'failed', message: 'User not found' });
+
+    user.isAdmin = true;
+    await user.save();
+
+    res.status(200).json({
+      status: 'success',
+      message: 'User promoted to admin successfully',
+    });
+  } catch (error) {
+    console.error('Error making admin:', error);
+    res.status(500).json({ status: 'failed', message: 'Internal server error' });
+  }
+};
+
+// Downgrade admin to normal user
+export const downgradeAdminToUser = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ status: "failed", message: "User not found" });
+    }
+
+    if (!user.isAdmin) {
+      return res.status(400).json({ status: "failed", message: "User is not an admin" });
+    }
+
+    user.isAdmin = false;
+    user.isSuperAdmin = false;
+    await user.save();
+
+    res.status(200).json({
+      status: "success",
+      message: "User downgraded from admin to normal user successfully",
+    });
+  } catch (error) {
+    console.error("Error downgrading admin:", error);
+    res.status(500).json({ status: "failed", message: "Internal server error" });
   }
 };

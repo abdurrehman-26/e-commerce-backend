@@ -37,3 +37,7 @@ export const blockunAuth = async (req, res, next) => {
 export const adminOnly = (req, res, next) => {
   if (req.user?.isAdmin) next(); else res.status(403).json({ message: "Admin access only" });
 };
+
+export const superAdminOnly = (req, res, next) => {
+  if (req.user?.isAdmin) next(); else res.status(403).json({ message: "Admin access only" });
+};
