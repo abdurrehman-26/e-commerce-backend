@@ -1,5 +1,5 @@
 import express from "express"
-import { addAddress, checkLogin, deleteAddress, getAllAddresses, getloggedinuser, getUsersList, loginUser, logoutUser, resgisterUser, updateAddress, updateName, updatePassword } from "../controllers/user.controller.js"
+import { addAddress, checkLogin, deleteAddress, getAllAddresses, getloggedinuser, getUsersList, loginUser, logoutUser, resgisterUser, setDefaultAddress, updateAddress, updateName, updatePassword } from "../controllers/user.controller.js"
 import { adminOnly, blockunAuth, verifyJWT } from "../middlewares/auth.middleware.js"
 
 const router = express.Router()
@@ -16,5 +16,6 @@ router.route("/addresses/add").post(verifyJWT, blockunAuth, addAddress)
 router.route("/addresses/update/:addressID").patch(verifyJWT, blockunAuth, updateAddress)
 router.route("/addresses/delete/:addressID").delete(verifyJWT, blockunAuth, deleteAddress)
 router.route("/addresses").get(verifyJWT, blockunAuth, getAllAddresses)
+router.route('/addresses/:addressID/set-default').patch(verifyJWT, blockunAuth, setDefaultAddress)
 
 export default router

@@ -371,3 +371,50 @@ export const getAllAddresses = async (req, res) => {
     addresses: sortedAddresses,
   });
 };
+
+export const setDefaultAddress = async (req, res) => {
+  const { addressID } = req.params;
+
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({
+        status: "failed",
+        message: "User not found",
+      });
+    }
+
+    const index = user.addresses.findIndex(
+      (addr) => addr._id.toString() === addressID
+    );
+
+    if (index === -1) {
+      return res.status(404).json({
+        status: "failed",
+        message: "Address not found",
+      });
+    }
+
+    // Set all addresses to isDefault = false
+    user.addresses.forEach((addr) => {
+      addr.isDefault = false;
+    });
+
+    // Set the selected address to isDefault = true
+    user.addresses[index].isDefault = true;
+
+    await user.save();
+
+    return res.status(200).json({
+      status: "success",
+      message: "Default address updated successfully",
+      addresses: user.addresses,
+    });
+  } catch (error) {
+    console.error("Error setting default address:", error);
+    return res.status(500).json({
+      status: "failed",
+      message: "Internal server error",
+    });
+  }
+};
