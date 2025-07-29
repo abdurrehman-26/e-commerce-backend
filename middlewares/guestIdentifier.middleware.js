@@ -1,5 +1,6 @@
 // middlewares/identifyUserOrGuest.js
 import { v4 as uuidv4 } from "uuid";
+import { COOKIE_DOAMIN } from "../constants/cookies-config.js";
 
 // Ensure cookieParser is used with a secret in your main app
 // app.use(cookieParser(process.env.COOKIE_SECRET));
@@ -24,7 +25,7 @@ export const identifyGuest = (req, res, next) => {
     maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
     httpOnly: true,                  // Can't be accessed via JavaScript
     secure: true,                    // Only over HTTPS
-    domain: ".clixmart.dns-dynamic.net",
+    domain: COOKIE_DOAMIN,
     sameSite: "none",  
   });
 

@@ -1,3 +1,4 @@
+import { COOKIE_DOAMIN } from "../constants/cookies-config.js";
 import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
@@ -50,17 +51,17 @@ export const loginUser = async (req, res) => {
     res
       .status(200)
       .cookie("accesstoken", accesstoken, {
-        maxAge: 1000 * 60 * 60 * 24 * 7,
+        maxAge: 1000 * 60 * 60 * 24 * 30,
         httpOnly: true, // Can't be accessed via JavaScript
         secure: true, // Only over HTTPS
-        domain: ".clixmart.dns-dynamic.net",
+        domain: COOKIE_DOAMIN,
         sameSite: "none",
       })
       .cookie("refreshtoken", refreshtoken, {
-        maxAge: 1000 * 60 * 60 * 24 * 7,
+        maxAge: 1000 * 60 * 60 * 24 * 30,
         httpOnly: true, // Can't be accessed via JavaScript
         secure: true, // Only over HTTPS
-        domain: ".clixmart.dns-dynamic.net",
+        domain: COOKIE_DOAMIN,
         sameSite: "none",
       })
       .json({
